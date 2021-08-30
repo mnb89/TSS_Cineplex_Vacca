@@ -1,0 +1,45 @@
+<mvc:View
+	controllerName="sap.ui.cineplex.controller.App"
+	displayBlock="true"
+	xmlns="sap.m"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:l="sap.ui.layout"
+	xmlns:app="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1">
+
+	<Shell>
+		<App>
+			<Page title="{Strings>appTitle}" >
+				<headerContent>
+					<Button icon="sap-icon://person-placeholder" tooltip="Connetti" press="openLoginDialog" ariaHasPopup="Dialog" visible="{= !${User>/loginAccepted}}" />
+					<Button icon="sap-icon://person-placeholder" tooltip="Account" press="onUserInfo" ariaHasPopup="Dialog" visible="{User>/loginAccepted}" />
+					<Button icon="sap-icon://decline" tooltip="Disconnetti" press="resetLogin" ariaHasPopup="Dialog" visible="{User>/loginAccepted}" />
+				</headerContent>
+				<HBox justifyContent="Center" class="sapUiSmallMarginTopBottom" width="100%">
+					<MessageStrip text="{Strings>loginTextAlert}" type="Error" visible="{UI>/noLoginAlert}" />
+				</HBox>
+				<VBox>		
+					<l:HorizontalLayout
+						allowWrapping="true"
+						content="{Movies>/}"
+						>
+						<GenericTile 
+							frameType="TwoByOne"
+							backgroundImage="{Movies>image}"
+							class="sapUiTinyMargin"
+							app:data="{Movies>}">
+							<TileContent footer="{Movies>genre}">
+								<NewsContent
+									contentText="{Movies>title}"
+									subheader="{Movies>director}"/>
+							</TileContent>
+						</GenericTile>
+					</l:HorizontalLayout>
+					<l:HorizontalLayout>
+									
+					</l:HorizontalLayout>
+				</VBox>		
+			</Page>
+		</App>
+	</Shell>
+
+</mvc:View>

@@ -1,0 +1,20 @@
+<core:FragmentDefinition 
+	xmlns="sap.m" 
+	xmlns:core="sap.ui.core"
+	xmlns:f="sap.ui.layout.form">
+	<Dialog title="Login" >
+	<f:SimpleForm> 
+			<f:content>
+				<Label text="{Strings>loginUsr}"/>
+				<Input id="loginUser"/>
+				<Label text="{Strings>loginPsw}"/>
+				<Input id="loginPassword" type="Password"/>
+				<Toolbar>
+					<ToolbarSpacer/>
+					<Button text="{Strings>loginOk}" type="Emphasized" press="okLoginDialog"/>
+					<Button text="{Strings>loginBack}" press="backLoginDialog"/>
+				</Toolbar>
+			</f:content>
+	</f:SimpleForm>
+	</Dialog>
+</core:FragmentDefinition>
