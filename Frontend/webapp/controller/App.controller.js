@@ -2,21 +2,335 @@ sap.ui.define([
 	"sap/ui/core/mvc/Controller",
 	"sap/ui/model/json/JSONModel",
 	"sap/ui/model/resource/ResourceModel",
-	"sap/ui/core/Fragment",
 	"sap/m/MessageToast",
 	"sap/m/MessageBox"
-], function (Controller, JSONModel, ResourceModel, Fragment, MessageToast, MessageBox, oView) {
+], function (Controller, JSONModel, ResourceModel, MessageToast, MessageBox, tx, oView, rdBtn, pDate) {
 	"use strict";
 
 	return Controller.extend("sap.ui.cineplex.controller.App", {
 
 		onInit: function () {
-			oView = this.getView()
-			oView.addStyleClass(sap.ui.Device.support.touch ? "sapUiSizeCozy" : "sapUiSizeCompact");
-
+			tx = this;
+			oView = this.getView();
+			rdBtn = oView.byId("hoursGroup");
+			pDate = oView.byId("dateTicket");
+			oView.addStyleClass("sapUiSizeCompact");
 			this.setViewModel();
-			this.setMoviesModel();
-			this.loadUi()
+			this.load()
+		},
+
+
+		load: function () {
+			this.oUser.oData.loginAccepted = false;
+			this.oUI.oData.editLogin = false;
+			this.oUI.oData.noLoginAlert = false;
+			this.oUI.oData.selectedMovie = false;
+			this.oUI.oData.selectedDate = false;
+			this.oUI.oData.selectedHour = false;
+
+			this.oUI.oData.payment = [
+				{
+					key: "CTN",
+					type: "Contanti"
+				},
+				{
+					key: "STP",
+					type: "Satispay"
+				},
+				{
+					key: "PPL",
+					type: "Paypal"
+				},
+				{
+					key: "CARD",
+					type: "Carta"
+				}
+			]
+			this.oUI.refresh()
+			this.oUser.refresh()
+		},
+
+		okLogin: function () {
+
+			var oUsername = oView.byId("loginUser").getValue();
+			var oPassword = oView.byId("loginPassword").getValue();;
+
+			if (!oUsername || !oPassword) {
+				MessageBox.alert("Inserire un nome utente e password");
+				return;
+			}
+
+			var jsonData = new JSONModel({
+				username: oUsername,
+				password: oPassword
+			});
+
+
+
+			oView.setBusy(true);
+			$.ajax(
+				{
+					method: "POST",
+					url: "https://localhost:44347/api/Visitatore",
+					data: JSON.stringify(jsonData.oData),
+					dataType: "json",
+					contentType: 'application/json',
+					async: false,
+					cache: false,
+					success: function (result) {
+						if (result != null) {
+							tx.oUser.oData = result;
+							MessageToast.show("Login effettuato.");
+							tx.oUser.oData.loginAccepted = true;
+							tx.oUser.refresh()
+							tx.setMoviesModel();
+							tx.setUserTicket();
+
+						} else {
+							MessageBox.alert("Nome utente o Password non trovati");
+							return;
+						}
+					},
+					complete: function () {
+						oView.setBusy(false)
+
+					}
+				});
+		},
+
+		backLogin: function () {
+			oView.byId("loginUser").setValue("")
+			oView.byId("loginPassword").setValue("");
+		},
+
+		resetLogin: function () {
+			this.oUser.oData = [];
+			this.oUser.oData.loginAccepted = false;
+			this.oUser.refresh();
+			this.backLogin();
+			this.backTicket();
+		},
+
+
+		selectedMovie: function (oEvent) {
+			var oMovie = oEvent.getSource().data("data");
+
+			var jsonData = new JSONModel({
+				cod_film: oMovie.cod_film
+			});
+
+
+			oView.setBusy(true);
+			$.ajax(
+				{
+					method: "POST",
+					url: "https://localhost:44347/api/Film",
+					data: JSON.stringify(jsonData.oData),
+					dataType: "json",
+					contentType: 'application/json',
+					async: false,
+					cache: false,
+					success: function (result) {
+						tx.oSelectedMovie.oData = result;
+						tx.oSelectedMovie.oData.total = 0;
+						tx.oSelectedMovie.oData.cod_film = oMovie.cod_film
+						tx.oSelectedMovie.oData.titolo = oMovie.titolo
+						tx.oSelectedMovie.oData.regista = oMovie.regista
+						tx.oSelectedMovie.oData.provincia = oMovie.provincia
+						tx.oSelectedMovie.oData.capienza = oMovie.capienza
+						tx.oSelectedMovie.oData.data_inizio = new Date(tx.oSelectedMovie.oData.data_inizio);
+						tx.oSelectedMovie.oData.data_fine = new Date(tx.oSelectedMovie.oData.data_fine);
+					},
+					complete: function () {
+						oView.setBusy(false)
+
+					}
+				});
+
+			this.oUI.oData.selectedMovie = true;
+			this.oUI.oData.selectedDate = false;
+			this.oUI.oData.selectedHour = false;
+			pDate.setValue("");
+			this.oSelectedMovie.refresh();
+			this.oUI.refresh()
+		},
+
+		selectedDate: function (oEvent) {
+			this.oSelectedMovie.oData.date = oEvent.getParameter("value");
+			this.oUI.oData.selectedDate = true;
+			this.oUI.refresh()
+			rdBtn.setSelectedIndex(-1);
+			this.oSelectedMovie.refresh();
+		},
+
+		selectedHour: function () {
+			this.oSelectedMovie.oData.hour = rdBtn.getSelectedButton().getText();
+			this.oUI.oData.selectedHour = true;
+			this.oUI.refresh()
+			this.oSelectedMovie.refresh();
+
+
+
+			var jsonData = new JSONModel({
+				cod_film: this.oSelectedMovie.oData.cod_film,
+				hour: this.oSelectedMovie.oData.hour,
+				date: this.oSelectedMovie.oData.date,
+				space: this.oSelectedMovie.oData.capienza
+			})
+
+			oView.setBusy(true)
+			$.ajax(
+				{
+					method: "POST",
+					url: "https://localhost:44347/api/Biglietto/OccupiedPlaces",
+					data: JSON.stringify(jsonData.oData),
+					dataType: "json",
+					contentType: 'application/json',
+					async: false,
+					cache: false,
+					success: function (result) {
+						tx.oSelectedMovie.oData.spazioLibero = result;
+					},
+					complete: function () {
+						oView.setBusy(false)
+
+					}
+				});
+
+			if (this.oSelectedMovie.oData.spazioLibero < (this.oSelectedMovie.oData.capienza / 2)) {
+				this.oSelectedMovie.oData.spaceStatus = "Warning";
+			} else if (this.oSelectedMovie.oData.spazioLibero < 5) {
+				this.oSelectedMovie.oData.spaceStatus = "Error";
+			} else {
+				this.oSelectedMovie.oData.spaceStatus = "Success";
+			}
+
+			this.oSelectedMovie.refresh();
+		},
+
+		changeNTicket: function (oEvent) {
+
+			var nTicket = oEvent.getParameter("value");
+			var oPrice = Number.parseFloat(this.oSelectedMovie.oData.prezzo);
+
+			if (nTicket != 0) {
+				this.oSelectedMovie.oData.total = nTicket * oPrice;
+				this.oSelectedMovie.oData.totalPz = nTicket;
+			}
+			this.oSelectedMovie.refresh();
+
+		},
+
+		okTicket: function () {
+
+			var jsonTicket = new JSONModel({
+				cod_visitatore: this.oUser.oData.cod_visitatore,
+				ora_proiezione: this.oSelectedMovie.oData.hour,
+				data: this.oSelectedMovie.oData.date,
+				tipo_pagamento: this.oSelectedMovie.oData.payment,
+				qta: this.oSelectedMovie.oData.totalPz,
+				cod_film: this.oSelectedMovie.oData.cod_film,
+			});
+
+			if (!this.oSelectedMovie.oData.payment) {
+				MessageBox.error("Inserire un tipo di pagamento per proseguire");
+				return;
+			}
+
+			if (this.oSelectedMovie.oData.spazioLibero - this.oSelectedMovie.oData.totalPz <= 0) {
+				MessageBox.error("Sala piena, non è possibile prenotare tutti biglietti per lo spettacolo");
+				return;
+			}
+
+			oView.setBusy(true)
+			$.ajax(
+				{
+					method: "POST",
+					url: "https://localhost:44347/api/Biglietto/GetDuplicateTicket",
+					data: JSON.stringify(jsonTicket.oData),
+					dataType: "json",
+					contentType: 'application/json',
+					async: false,
+					cache: false,
+					success: function (result) {
+
+						if (result != null) {
+							MessageBox.error("Esiste già una tua prenotazione per questo spettacolo, controlla l'area personale");
+							return;
+						} else {
+							tx.addTicket(jsonTicket)
+						}
+					},
+					complete: function () {
+						oView.setBusy(false)
+
+					}
+				});
+
+		},
+
+		addTicket: function (ticket) {
+
+			oView.setBusy(true)
+			$.ajax(
+				{
+					method: "POST",
+					url: "https://localhost:44347/api/Biglietto",
+					data: JSON.stringify(ticket.oData),
+					dataType: "json",
+					contentType: 'application/json',
+					async: false,
+					cache: false,
+					success: function (result) {
+						MessageToast.show("Prenotazione completata")
+						tx.setUserTicket()
+						tx.backTicket()
+					},
+					complete: function () {
+						oView.setBusy(false)
+
+					}
+				});
+		},
+
+		backTicket: function () {
+			oView.byId("dateTicket").setValue("");
+			oView.byId("nrTicket").setValue("");
+			oView.byId("hoursGroup").setSelectedIndex();
+			this.oSelectedMovie.oData = []
+			this.oUI.oData.selectedMovie = false;
+			this.oSelectedMovie.refresh();
+			this.oUI.refresh();
+		},
+
+		editLogin: function () {
+			this.oUI.oData.editLogin = true;
+			this.oUI.refresh();
+		},
+
+		okEditLogin: function () {
+
+
+			var oUsername = oView.byId("editUsr").getValue();
+			var oPassword = oView.byId("editPsw").getValue();
+
+			if (!oUsername || !oPassword) {
+				MessageBox.alert("Inserire un nome utente e password");
+				return;
+			}
+			if (oPassword.length < 4) {
+				MessageBox.alert("La password deve contenere almeno 4 caratteri");
+				return;
+			}
+
+			this.oUser.oData.username = oUsername
+			this.oUser.oData.password = oPassword
+			this.noEditLogin()
+		},
+
+		noEditLogin: function () {
+			this.oUI.oData.editLogin = false;
+			this.oUI.refresh();
 		},
 
 		setViewModel: function () {
@@ -32,162 +346,174 @@ sap.ui.define([
 			this.oUser = new JSONModel();
 			this.oUI = new JSONModel();
 			this.oMovie = new JSONModel();
+			this.oSelectedMovie = new JSONModel();
+			this.oTemp = new JSONModel();
 
 			oView.setModel(this.oUI, "UI");
 			oView.setModel(this.oUser, "User");
 			oView.setModel(this.oMovie, "Movies");
+			oView.setModel(this.oSelectedMovie, "SelectedMovie");
+			oView.setModel(this.oTemp, "Temp");
 			oView.setModel(this.oStrings, "Strings");
 		},
 
-		loadUi: function () {
-			this.oUser.oData.loginAccepted = false;
-			this.oUI.oData.noLoginAlert = false;
-			this.oUI.refresh()
-			this.oUser.refresh()
-
-		},
-
 		setMoviesModel: function () {
+			oView.setBusy(true)
+			$.ajax(
+				{
+					method: "GET",
+					url: "https://localhost:44347/api/Film",
+					contentType: 'application/json',
+					async: false,
+					cache: false,
+					success: function (result) {
+						tx.oMovie.oData = result;
+					},
+					complete: function () {
+						oView.setBusy(false)
 
-			// $.ajax({
-			// 	url: "",
-			// 	type: 'POST',
-			// 	data:{},
-			// 	contentType: '',
-			// 	success: function(data){
-			// 		console.log("success"+data);
-			// 	},
-			// 	error: function(e){
-			// 		console.log("error: "+e);
-			// 	}
-			//   });
-
-			this.oMovie.oData = [
-				{
-					title: "The Suicide Squad – Missione suicida",
-					director: "James Gunn",
-					year: "2021",
-					genre: "Supereroi, Azione, Commedia",
-					validFrom: "2021-08-05",
-					validTo: "2021-08-30",
-					image: "https://pad.mymovies.it/cinemanews/2021/175076/locandina-ver.jpg",
-				},
-				{
-					title: "Fast & Furious 9 - The Fast Saga",
-					director: "Justin Lin",
-					year: "2021",
-					genre: "Azione, Commedia",
-					validFrom: "2021-08-15",
-					validTo: "2021-09-15",
-					image: "https://pad.mymovies.it/filmclub/2017/10/059/locandinapg2.jpg",
-				},
-				{
-					title: "OLD",
-					director: "M. Night Shyamalan",
-					year: "2021",
-					genre: "Thriller",
-					validFrom: "2021-07-10",
-					validTo: "2021-07-30",
-					image: "https://pad.mymovies.it/filmclub/2020/05/015/locandina.jpg",
-				},
-				{
-					title: "I Croods 2 - Una nuova era",
-					director: "Kirk De Micco, Chris Sanders, Joel Crawford",
-					year: "2020",
-					genre: "Animazione, Avventura, Commedia",
-					validFrom: "2021-07-21",
-					validTo: "2021-08-10",
-					image: "https://pad.mymovies.it/filmclub/2019/11/319/locandina.jpg",
-				},
-				{
-					title: "Me Contro te - Il mistero della scuola incantata",
-					director: "Gianluca Leuzzi",
-					year: "2021",
-					genre: "Commedia",
-					validFrom: "2021-08-01",
-					validTo: "2021-09-15",
-					image: "https://pad.mymovies.it/filmclub/2021/06/165/locandina.jpg",
-				},
-				{
-					title: "Jungle Cruise",
-					director: "Jaume Collet-Serra",
-					year: "2021",
-					genre: "Avventura",
-					validFrom: "2021-07-28",
-					validTo: "2021-08-10",
-					image: "https://pad.mymovies.it/filmclub/2018/07/051/locandina.jpg",
-				}
-
-			]
+					},
+					error: function (e) {
+						MessageBox.alert(e)
+					}
+				});
 
 			this.oMovie.refresh();
 
 		},
 
-		openLoginDialog: function () {
+		setUserTicket: function () {
 
-			if (!this.pLoginDialog) {
-				this.pLoginDialog = Fragment.load({
-					id: oView.getId(),
-					name: "sap.ui.cineplex.view.Login",
-					controller: this
-				}).then(function (oDialog) {
-					oView.addDependent(oDialog);
-					return oDialog;
+			var oUrl = "https://localhost:44347/api/Biglietto/" + this.oUser.oData.cod_visitatore;
+
+			oView.setBusy(true)
+			$.ajax(
+				{
+					method: "GET",
+					url: oUrl,
+					contentType: 'application/json',
+					async: false,
+					cache: false,
+					success: function (result) {
+						result.forEach(element => {
+							element.data = new Date(element.data),
+							element.tipo_pagamento = tx.setPaymentType(element.tipo_pagamento),
+							element.editOn = false
+						});
+
+						tx.oUser.oData.tickets = result
+						tx.oUser.refresh();
+					},
+					complete: function () {
+						oView.setBusy(false)
+
+					}
 				});
-			}
-			this.pLoginDialog.then(function (oDialog) {
-				oDialog.open();
-			});
+
 		},
 
-		okLoginDialog: function () {
+		setPaymentType: function (key) {
+			var payType;
 
-			var oUsername = oView.byId("loginUser").getValue();
-			var oPassword = oView.byId("loginPassword").getValue();;
+			this.oUI.oData.payment.forEach(pm => {
+				if (pm.key == key) {
+					payType = pm.type;
+				}
+			});
 
-			if (!oUsername) {
-				MessageBox.alert("Inserire un nome utente");
-				return;
+			return payType
+		},
+
+
+		editUserTicket:function(oEvent){
+			var oTicket = oEvent.getSource().data("data");
+
+			if(this.oTemp.oData.index != undefined){
+				this.oUser.oData.tickets[this.oTemp.oData.index].qta = this.oTemp.oData.qta
 			}
-			if (!oPassword) {
-				MessageBox.alert("Inserire una password");
-				return;
-			}
 
-			// $.ajax({
-			// 	url: "",
-			// 	type: 'POST',
-			// 	data: {},
-			// 	contentType: 'application/x-www-form-urlencoded',
-			// 	success: function (data) {
-			// 		console.log("success" + data);
-			// 	},
-			// 	error: function (e) {
-			// 		console.log("error: " + e);
-			// 	}
-			// });
+			this.oTemp.oData.index = oEvent.getParameter("row").getIndex();
+			this.oTemp.oData.qta = oTicket.qta;
+			oTicket.editOn = true;
 
-			MessageToast.show("Login effettuato.");
-			this.backLoginDialog()
-			this.oUser.oData.loginAccepted = true;
 			this.oUser.refresh();
 
+
 		},
 
-		backLoginDialog: function () {
-			oView.byId("loginUser").setValue("")
-			oView.byId("loginPassword").setValue("");
-			this.pLoginDialog.then(function (oDialog) {
-				oDialog.close();
-			});
+		updateUserTicket:function(oEvent){
+			var oTicket = oEvent.getSource().data("data");
+
+			var jsonData = new JSONModel({
+				cod_operazione: oTicket.cod_operazione,
+				qta: Number.parseInt(oTicket.qta)
+			})
+
+			oView.setBusy(true)
+			$.ajax(
+				{
+					method: "PATCH",
+					url: "https://localhost:44347/api/Biglietto",
+					data: JSON.stringify(jsonData.oData),
+					dataType: "json",
+					contentType: 'application/json',
+					async: false,
+					cache: false,
+					success: function (result) {
+						MessageToast.show("Prenotazione aggiornata")
+						tx.setUserTicket()
+					},
+					complete: function () {
+						oView.setBusy(false)
+
+					}
+				});
+
 		},
 
-		resetLogin: function () {
-			this.oUser.oData = [];
-			this.oUser.oData.loginAccepted = false;
+		deleteUserTicket:function(oEvent){
+			var oTicket = oEvent.getSource().data("data");
+
+			var oUrl = "https://localhost:44347/api/Biglietto/"+oTicket.cod_operazione;
+
+
+			oView.setBusy(true)
+			$.ajax(
+				{
+					method: "DELETE",
+					url: oUrl,
+					data: {},
+					dataType: "json",
+					contentType: 'application/json',
+					async: false,
+					cache: false,
+					success: function (result) {
+						MessageToast.show("Prenotazione eliminata")
+						tx.setUserTicket()
+					},
+					complete: function () {
+						oView.setBusy(false)
+
+					}
+				});
+
+		},
+
+		backUserTicket:function(oEvent){
+			var oTicket = oEvent.getSource().data("data");
+
+			if(this.oTemp.oData.index != undefined){
+				this.oUser.oData.tickets[this.oTemp.oData.index].qta = this.oTemp.oData.qta
+			}
+
+			this.oTemp.oData = {}
+			oTicket.editOn = false;
 			this.oUser.refresh();
+			this.oTemp.refresh();
 		}
+
+
+
 	});
 
 });

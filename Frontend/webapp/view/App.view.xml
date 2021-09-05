@@ -3,43 +3,292 @@
 	displayBlock="true"
 	xmlns="sap.m"
 	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:x="sap.uxap"
+	xmlns:t="sap.ui.table"
 	xmlns:l="sap.ui.layout"
+	xmlns:f="sap.ui.layout.form"
+	xmlns:core="sap.ui.core"
 	xmlns:app="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1">
-
-	<Shell>
+<Shell>
+	
 		<App>
-			<Page title="{Strings>appTitle}" >
-				<headerContent>
-					<Button icon="sap-icon://person-placeholder" tooltip="Connetti" press="openLoginDialog" ariaHasPopup="Dialog" visible="{= !${User>/loginAccepted}}" />
-					<Button icon="sap-icon://person-placeholder" tooltip="Account" press="onUserInfo" ariaHasPopup="Dialog" visible="{User>/loginAccepted}" />
-					<Button icon="sap-icon://decline" tooltip="Disconnetti" press="resetLogin" ariaHasPopup="Dialog" visible="{User>/loginAccepted}" />
-				</headerContent>
-				<HBox justifyContent="Center" class="sapUiSmallMarginTopBottom" width="100%">
-					<MessageStrip text="{Strings>loginTextAlert}" type="Error" visible="{UI>/noLoginAlert}" />
+	
+	
+			<x:ObjectPageLayout 
+				id="CineplexPage"
+				showTitleInHeaderContent="true"
+				useIconTabBar="true"
+				headerContentPinned="true"
+				headerContentPinnable="false"
+				toggleHeaderOnTitleClick="false">
+				
+				<x:headerTitle>
+					<x:ObjectPageDynamicHeaderTitle>
+						<x:heading>
+							<Title text="{Strings>appTitle}" titleStyle="H2"/>
+						</x:heading>
+	
+						<x:actions>
+							<Button icon="sap-icon://employee-rejections" tooltip="Disconnetti" press="resetLogin" type="Ghost" visible="{User>/loginAccepted}" />
+						</x:actions>
+					</x:ObjectPageDynamicHeaderTitle>
+	
+				</x:headerTitle>
+
+				<x:headerContent>
+				<HBox justifyContent="SpaceBetween">
+					<Text text="{Strings>appDescription}"/>
+					<ObjectStatus text="UTENTE COLLEGATO: {User>/nome} {User>/cognome}" state="Success" visible="{User>/loginAccepted}"/>
 				</HBox>
-				<VBox>		
-					<l:HorizontalLayout
-						allowWrapping="true"
-						content="{Movies>/}"
-						>
-						<GenericTile 
-							frameType="TwoByOne"
-							backgroundImage="{Movies>image}"
-							class="sapUiTinyMargin"
-							app:data="{Movies>}">
-							<TileContent footer="{Movies>genre}">
-								<NewsContent
-									contentText="{Movies>title}"
-									subheader="{Movies>director}"/>
-							</TileContent>
-						</GenericTile>
-					</l:HorizontalLayout>
-					<l:HorizontalLayout>
-									
-					</l:HorizontalLayout>
-				</VBox>		
-			</Page>
+				</x:headerContent>
+
+				<x:sections>
+
+					<x:ObjectPageSection id="loginTab" app:id="loginTab" title="Login"  visible="{= !${User>/loginAccepted}}">
+						<x:subSections>
+							<x:ObjectPageSubSection>
+								<VBox>
+									<HBox justifyContent="Center">
+									<l:VerticalLayout>
+										<Label text="{Strings>loginUsr}"/>
+										<Input id="loginUser"/>
+										<Label text="{Strings>loginPsw}"/>
+										<Input id="loginPassword" type="Password"/>
+									</l:VerticalLayout>
+									</HBox >
+										<HBox justifyContent="Center" class="sapUiTinyMarginTop">
+											<Button text="{Strings>loginOk}" type="Emphasized" press="okLogin" class="sapUiTinyMarginBeginEnd"/>
+											<Button text="{Strings>loginBack}" press="backLogin" class="sapUiTinyMarginBeginEnd"/>
+										</HBox>
+								</VBox>
+							</x:ObjectPageSubSection>
+						</x:subSections>
+					</x:ObjectPageSection>
+
+					<x:ObjectPageSection id="movieTab" app:id="movieTab" title="Film in Sala" visible="{User>/loginAccepted}">
+						<x:subSections>
+							<x:ObjectPageSubSection>
+								<l:VerticalLayout>
+									 <t:Table
+										id="MoviesTable"
+										alternateRowColors="true"
+										selectionMode="None"
+										visibleRowCount="6"
+										rowActionCount="1"
+										rows="{Movies>/}">
+										<t:columns>
+											<t:Column width="35%">
+												<Label text="TITOLO"/>
+												<t:template>
+													<Text text="{Movies>titolo}" class="sapThemeText"/>
+												</t:template>
+											</t:Column>
+											<t:Column width="20%" hAlign="Center">
+												<Label text="REGISTA"/>
+												<t:template>
+													<Text text="{Movies>regista}" class="sapThemeText"/>
+												</t:template>
+											</t:Column>
+											<t:Column width="25%" hAlign="Center">
+												<Label text="GENERE"/>
+												<t:template>
+													<Text text="{Movies>genere}" class="sapThemeText"/>
+												</t:template>
+											</t:Column>
+											<t:Column width="10%" hAlign="Center">
+												<Label text="CITTA'"/>
+												<t:template>
+													<Text text="{Movies>provincia}" class="sapThemeText"/>
+												</t:template>
+											</t:Column>
+											<t:Column width="10%" hAlign="Center">
+												<Label text="POSTI"/>
+												<t:template>
+													<Text text="{Movies>capienza}" class="sapThemeText"/>
+												</t:template>
+											</t:Column>
+										</t:columns>
+										<t:rowActionTemplate>
+											<t:RowAction>
+												 <t:RowActionItem icon="sap-icon://navigation-right-arrow" press="selectedMovie" app:data="{Movies>}" />
+											</t:RowAction>
+										</t:rowActionTemplate>
+									 </t:Table>
+	
+									<l:Grid
+										binding="{SelectedMovie>/}"
+										class="sapUiLargeMarginTop"
+										hSpacing="2"
+										defaultSpan="L10 M10 S10"
+										width="100%"
+										visible="{UI>/selectedMovie}">
+										<l:content>
+											<HBox justifyContent="SpaceBetween" width="100%">
+												<Image src="{SelectedMovie>poster}" width="20rem" class="sapUiMediumMarginEnd">
+												<layoutData>
+													<l:GridData
+														span="L5 M5 S8"
+														linebreakL="true"
+														linebreakM="true"
+														linebreakS="true"/>
+												</layoutData>
+												</Image>
+												<VBox class="sapUiMediumMarginEnd">
+													<Title text="{SelectedMovie>titolo}" wrapping="true" titleStyle="H1"/>
+													<Title text="{SelectedMovie>anno}" titleStyle="H2"/>
+	
+													<Title text="{SelectedMovie>regista}" titleStyle="H3"/>
+													<Text text="{SelectedMovie>trama}" class="sapUiSmallMarginTop"/>
+													<Toolbar class="sapUiTinyMarginBottom"/>
+													<Text text="Cinema: {SelectedMovie>nome} - {SelectedMovie>indirizzo} - {SelectedMovie>provincia}" class="sapUiTinyMarginTop"/>
+													<ObjectStatus text="POSTI LIBERI: {SelectedMovie>spazioLibero}" state="{SelectedMovie>spaceStatus}" visible="{UI>/selectedHour}" class="sapUiTinyMarginTop"/>
+
+													<Label text="Giorno:" class="sapUiSmallMarginTop"/>
+													<DatePicker
+														id="dateTicket"
+														width="50%"
+														placeholder="Inserire data proiezione"
+														displayFormat="dd/MM/yyyy"
+														valueFormat="yyyy-MM-dd"
+														change="selectedDate"
+														minDate="{SelectedMovie>data_inizio}"
+														maxDate="{SelectedMovie>data_fine}"/>
+													<RadioButtonGroup id="hoursGroup" columns="3" class="sapUiMediumMarginEnd" select="selectedHour" visible="{UI>/selectedDate}">
+															<RadioButton text="18:00"/>
+															<RadioButton text="20:00"/>
+															<RadioButton text="22:00"/>
+													</RadioButtonGroup>
+													<HBox>
+													<Label text="Biglietti:" class="sapUiLargeMarginEnd"/>
+													<Label text="Pagamento:" class="sapUiSmallMarginBegin"/>
+
+													</HBox>
+													<HBox>
+														<StepInput width="5rem" id="nrTicket" min="0" max="10" change="changeNTicket" enabled="{UI>/selectedHour}" class="sapUiMediumMarginEnd"/>
+														<Select
+															forceSelection="false"
+															selectedKey="{SelectedMovie>payment}"
+															enabled="{UI>/selectedHour}"
+															items="{UI>/payment/}">
+															<core:Item key="{UI>key}" text="{UI>type}" />
+														</Select>
+													</HBox>
+												<HBox justifyContent="End" class="sapUiSmallMarginTop">
+													<ObjectStatus text="TOTALE: {SelectedMovie>total} €" state="Success" class="sapUiTinyMarginTop"/>
+													<Button text="Prenota" press="okTicket" type="Emphasized" class="sapUiTinyMarginBeginEnd"/>
+													<Button text="Annulla" press="backTicket" class="sapUiTinyMarginBeginEnd"/>
+												</HBox>
+												</VBox>
+											</HBox>
+										</l:content>
+	
+									</l:Grid>
+	
+								</l:VerticalLayout>
+	
+							</x:ObjectPageSubSection>
+						</x:subSections>
+					</x:ObjectPageSection>
+
+					<x:ObjectPageSection id="userTab" app:id="userTab" title="Area Personale" visible="{User>/loginAccepted}">
+	
+						<x:subSections>
+	
+							<x:ObjectPageSubSection title="Dati personali">
+								<VBox>
+									<Title text="Nome: {User>/nome}" class="sapUiTinyMarginBottom"/>
+									<Title text="Cognome: {User>/cognome}" class="sapUiTinyMarginBottom"/>
+									<Text text="Email: {User>/email}" class="sapUiTinyMarginBottom"/>
+									<Text text="Telefono: {User>/telefono}" class="sapUiTinyMarginBottom"/>
+									<HBox class="sapUiTinyMarginBottom">
+										<Input id="editUsr" value="{User>/user}" enabled="{UI>/editLogin}"/>
+										<Input id="editPsw" value="{User>/psw}" type="Password" enabled="{UI>/editLogin}" class="sapUiTinyMarginBegin"/>
+									</HBox>
+									<HBox>
+										<Button text="Modifica" press="editLogin" visible="{= !${UI>/editLogin}}"/>
+										<Button text="Conferma" press="okEditLogin" visible="{= ${UI>/editLogin}}" />
+										<Button text="Annulla" 	press="noEditLogin" enabled="{= ${UI>/editLogin}}"/>
+									</HBox>
+
+								</VBox>
+
+							</x:ObjectPageSubSection>
+							<x:ObjectPageSubSection title="Prenotazioni">
+								 <t:Table
+										id="userTickets"
+										alternateRowColors="true"
+										visibleRowCount="{=${User>/tickets}.length}"
+										selectionMode="None"
+										rowActionCount="2"
+										rows="{User>/tickets}">
+										<t:columns>
+											<t:Column>
+												<Label width="42rem" text="TITOLO"/>
+												<t:template>
+													<Text text="{User>titolo}" class="sapThemeText"/>
+												</t:template>
+											</t:Column>
+											<t:Column width="10rem" hAlign="Center">
+												<Label text="CINEMA"/>
+												<t:template>
+													<Text text="{User>cinema}" class="sapThemeText"/>
+												</t:template>
+											</t:Column>
+											<t:Column width="5rem" hAlign="Center">
+												<Label text="CITTA'"/>
+												<t:template>
+													<Text text="{User>prv}" class="sapThemeText"/>
+												</t:template>
+											</t:Column>
+											<t:Column width="10rem" hAlign="Center">
+												<Label text="DATA"/>
+												<t:template>
+													<Text 
+														text="{
+															path:'User>data',
+      														type:'sap.ui.model.type.Date',
+      														formatOptions: { pattern: 'dd/MM/yyyy'} }" 
+														class="sapThemeText"/> 
+												</t:template>
+											</t:Column>
+											<t:Column width="10rem" hAlign="Center">
+												<Label text="PAGAMENTO"/>
+												<t:template>
+													<Text text="{User>tipo_pagamento}" class="sapThemeText"/>
+												</t:template>
+											</t:Column>
+											<t:Column width="10rem" hAlign="Center">
+												<Label text="ORA"/>
+												<t:template>
+													<Text text="{User>ora_proiezione}" class="sapThemeText"/>
+												</t:template>
+											</t:Column>
+											<t:Column width="8rem" hAlign="Center">
+												<Label text="BIGLIETTI"/>
+												<t:template>
+													<Input value="{User>qta}" type="Number" class="sapThemeText" enabled="{User>editOn}"/>
+												</t:template>
+											</t:Column>
+										</t:columns>
+										<t:rowActionTemplate>
+											<t:RowAction>
+												<t:RowActionItem icon="sap-icon://edit" press="editUserTicket" app:data="{User>}" visible="{= !${User>editOn}}" />
+												<t:RowActionItem icon="sap-icon://save" press="updateUserTicket" app:data="{User>}" visible="{User>editOn}" />
+												<t:RowActionItem icon="sap-icon://delete" press="deleteUserTicket" app:data="{User>}" visible="{= !${User>editOn}}" />
+												<t:RowActionItem icon="sap-icon://undo" press="backUserTicket" app:data="{User>}" visible="{User>editOn}" />
+											</t:RowAction>
+										</t:rowActionTemplate>
+									 </t:Table>
+							</x:ObjectPageSubSection>
+
+						</x:subSections>
+	
+					</x:ObjectPageSection>
+	
+				</x:sections>
+	
+			</x:ObjectPageLayout>
 		</App>
-	</Shell>
+</Shell>
 
 </mvc:View>
