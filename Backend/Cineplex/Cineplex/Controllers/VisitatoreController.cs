@@ -2,14 +2,12 @@
 using Cineplex.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
-using System.Linq;
+using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Security.Cryptography;
 
 namespace Cineplex.Controllers
 {
@@ -60,14 +58,8 @@ namespace Cineplex.Controllers
         public Visitatore GetVisitatoreForLogin([FromBody] JsonElement body)
         {
 
-            var hashAlg = SHA256.Create();
-
-
             string oUsr = body.GetProperty("username").GetString();
             string oPsw = body.GetProperty("password").GetString();
-
-
-
 
             string stm = "SELECT * FROM visitatore WHERE USER = '"+ oUsr + "' AND PSW = '"+ oPsw + "' ";
 
@@ -78,7 +70,6 @@ namespace Cineplex.Controllers
             {
                 return null;
             }
-
 
             Visitatore obj = new Visitatore();
 

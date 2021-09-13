@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "p0NdHQSjSd+9B1RCPDAuHtdk4kwO7vJr85c+GfOLuGmgMlLYCsmDsnR1q2BK5gIVt2SzGNQwnTL+EUCKUyxLAg==",
+  "dgSpecHash": "8jCo+Lk68pSk2e3gHBlCn3eQ7tTwNHYM7760TqtYIEhBIQSUbhOE9L/h1jqmCG7HkwIVm6mYEkfM8KAVQ6RFag==",
   "success": true,
   "projectFilePath": "F:\\CORSO TSS\\COMPITO FINALE\\TSS_Cineplex_Vacca\\Backend\\Cineplex\\Cineplex\\Cineplex.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\MNB89\\.nuget\\packages\\entityframework\\6.4.4\\entityframework.6.4.4.nupkg.sha512",
+    "C:\\Users\\MNB89\\.nuget\\packages\\microsoft.aspnetcore.authentication.certificate\\5.0.9\\microsoft.aspnetcore.authentication.certificate.5.0.9.nupkg.sha512",
     "C:\\Users\\MNB89\\.nuget\\packages\\microsoft.csharp\\4.7.0\\microsoft.csharp.4.7.0.nupkg.sha512",
     "C:\\Users\\MNB89\\.nuget\\packages\\microsoft.data.sqlite.core\\5.0.9\\microsoft.data.sqlite.core.5.0.9.nupkg.sha512",
     "C:\\Users\\MNB89\\.nuget\\packages\\microsoft.dotnet.platformabstractions\\3.1.6\\microsoft.dotnet.platformabstractions.3.1.6.nupkg.sha512",
@@ -51,8 +52,6 @@
     "C:\\Users\\MNB89\\.nuget\\packages\\system.security.cryptography.protecteddata\\4.7.0\\system.security.cryptography.protecteddata.4.7.0.nupkg.sha512",
     "C:\\Users\\MNB89\\.nuget\\packages\\system.security.permissions\\4.7.0\\system.security.permissions.4.7.0.nupkg.sha512",
     "C:\\Users\\MNB89\\.nuget\\packages\\system.security.principal.windows\\4.7.0\\system.security.principal.windows.4.7.0.nupkg.sha512",
-    "C:\\Users\\MNB89\\.nuget\\packages\\system.text.encodings.web\\5.0.0\\system.text.encodings.web.5.0.0.nupkg.sha512",
-    "C:\\Users\\MNB89\\.nuget\\packages\\system.text.json\\5.0.0\\system.text.json.5.0.0.nupkg.sha512",
     "C:\\Users\\MNB89\\.nuget\\packages\\system.windows.extensions\\4.7.0\\system.windows.extensions.4.7.0.nupkg.sha512"
   ],
   "logs": []

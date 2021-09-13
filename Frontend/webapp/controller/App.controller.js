@@ -10,6 +10,9 @@ sap.ui.define([
 	return Controller.extend("sap.ui.cineplex.controller.App", {
 
 		onInit: function () {
+
+			//dotnet dev-certs https --trust
+
 			tx = this;
 			oView = this.getView();
 			rdBtn = oView.byId("hoursGroup");
@@ -71,7 +74,7 @@ sap.ui.define([
 			$.ajax(
 				{
 					method: "POST",
-					url: "https://localhost:44347/api/Visitatore",
+					url: "https://localhost:5001/api/Visitatore",
 					data: JSON.stringify(jsonData.oData),
 					dataType: "json",
 					contentType: 'application/json',
@@ -124,7 +127,7 @@ sap.ui.define([
 			$.ajax(
 				{
 					method: "POST",
-					url: "https://localhost:44347/api/Film",
+					url: "https://localhost:5001/api/Film",
 					data: JSON.stringify(jsonData.oData),
 					dataType: "json",
 					contentType: 'application/json',
@@ -182,7 +185,7 @@ sap.ui.define([
 			$.ajax(
 				{
 					method: "POST",
-					url: "https://localhost:44347/api/Biglietto/OccupiedPlaces",
+					url: "https://localhost:5001/api/Biglietto/OccupiedPlaces",
 					data: JSON.stringify(jsonData.oData),
 					dataType: "json",
 					contentType: 'application/json',
@@ -246,7 +249,7 @@ sap.ui.define([
 			$.ajax(
 				{
 					method: "POST",
-					url: "https://localhost:44347/api/Biglietto/GetDuplicateTicket",
+					url: "https://localhost:5001/api/Biglietto/GetDuplicateTicket",
 					data: JSON.stringify(jsonTicket.oData),
 					dataType: "json",
 					contentType: 'application/json',
@@ -275,7 +278,7 @@ sap.ui.define([
 			$.ajax(
 				{
 					method: "POST",
-					url: "https://localhost:44347/api/Biglietto",
+					url: "https://localhost:5001/api/Biglietto",
 					data: JSON.stringify(ticket.oData),
 					dataType: "json",
 					contentType: 'application/json',
@@ -362,7 +365,7 @@ sap.ui.define([
 			$.ajax(
 				{
 					method: "GET",
-					url: "https://localhost:44347/api/Film",
+					url: "https://localhost:5001/api/Film",
 					contentType: 'application/json',
 					async: false,
 					cache: false,
@@ -384,7 +387,7 @@ sap.ui.define([
 
 		setUserTicket: function () {
 
-			var oUrl = "https://localhost:44347/api/Biglietto/" + this.oUser.oData.cod_visitatore;
+			var oUrl = "https://localhost:5001/api/Biglietto/" + this.oUser.oData.cod_visitatore;
 
 			oView.setBusy(true)
 			$.ajax(
@@ -453,7 +456,7 @@ sap.ui.define([
 			$.ajax(
 				{
 					method: "PATCH",
-					url: "https://localhost:44347/api/Biglietto",
+					url: "https://localhost:5001/api/Biglietto",
 					data: JSON.stringify(jsonData.oData),
 					dataType: "json",
 					contentType: 'application/json',
@@ -474,7 +477,7 @@ sap.ui.define([
 		deleteUserTicket:function(oEvent){
 			var oTicket = oEvent.getSource().data("data");
 
-			var oUrl = "https://localhost:44347/api/Biglietto/"+oTicket.cod_operazione;
+			var oUrl = "https://localhost:5001/api/Biglietto/"+oTicket.cod_operazione;
 
 
 			oView.setBusy(true)

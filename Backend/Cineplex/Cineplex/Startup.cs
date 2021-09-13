@@ -13,6 +13,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.Certificate;
+using System.Security.Claims;
 
 namespace Cineplex
 {
@@ -28,12 +30,42 @@ namespace Cineplex
         }
 
         public IConfiguration Configuration { get; }
+        public string cs { get; set; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<cineplexContext>(options => options.UseSqlite(Configuration.GetConnectionString("cs2")));
+
+            services.AddAuthentication(CertificateAuthenticationDefaults.AuthenticationScheme).AddCertificate(options =>
+            {
+                options.Events = new CertificateAuthenticationEvents
+                {
+                    OnCertificateValidated = context =>
+                    {
+                        var claims = new[]
+                        {
+                    new Claim(
+                        ClaimTypes.NameIdentifier,
+                        context.ClientCertificate.Subject,
+                        ClaimValueTypes.String,
+                        context.Options.ClaimsIssuer),
+                    new Claim(ClaimTypes.Name,
+                        context.ClientCertificate.Subject,
+                        ClaimValueTypes.String,
+                        context.Options.ClaimsIssuer)
+                };
+
+                        context.Principal = new ClaimsPrincipal(
+                            new ClaimsIdentity(claims, context.Scheme.Name));
+                        context.Success();
+
+                        return Task.CompletedTask;
+                    }
+                };
+            });
+
+            services.AddDbContext<cineplexContext>(options => options.UseSqlite(Configuration.GetConnectionString("cs")));
             services.AddControllers();
+
             var _corsBuilder = new CorsPolicyBuilder();
             _corsBuilder.AllowCredentials();
             _corsBuilder.AllowAnyHeader();
@@ -43,7 +75,6 @@ namespace Cineplex
             services.AddCors(options => { options.AddPolicy("CorsPolicy", _corsBuilder.Build()); });
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())

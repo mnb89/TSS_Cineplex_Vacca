@@ -1,11 +1,8 @@
 ﻿using Cineplex.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Data.SQLite;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Cineplex.Contexts
 {
@@ -22,10 +19,16 @@ namespace Cineplex.Contexts
 
         public cineplexContext(DbContextOptions<cineplexContext> options): base(options)
         {
-            CS = "Data Source = F:\\CORSO TSS\\COMPITO FINALE\\TSS_Cineplex_Vacca\\Backend\\cineplex.db";
+            //CS = "Data Source = F:\\CORSO TSS\\COMPITO FINALE\\TSS_Cineplex_Vacca\\Backend\\cineplex.db";
+
+            var connectionString = options.Extensions.ToList()[1];
+
+         
+            CS = ((RelationalOptionsExtension)connectionString.Info.Extension).ConnectionString;
+           
             con = new SQLiteConnection(CS);
         }
-
+        
 
     }
 }
